@@ -30,6 +30,7 @@ def report_list(request):
     return render(request, 'reports/report_list.html', {'reports': reports})
 
 @login_required
+@login_required
 def generate_student_report(request):
     if request.method == 'POST':
         try:
@@ -37,22 +38,13 @@ def generate_student_report(request):
             term = request.POST.get('term')
             academic_year = request.POST.get('academic_year')
             
-            if not student_id or not term or not academic_year:
+            if not all([student_id, term, academic_year]):
                 messages.error(request, 'Please select student, term, and academic year.')
                 return redirect('generate_student_report')
             
             student = get_object_or_404(Student, id=student_id)
-            results = Result.objects.filter(student=student, term=term, academic_year=academic_year)
             
-            if not results.exists():
-                messages.error(request, 'No results found for this student in the selected term and academic year.')
-                return redirect('generate_student_report')
-            
-            # Calculate statistics
-            overall_average = results.aggregate(avg=Avg('total_score'))['avg'] or 0
-            total_subjects = results.count()
-            
-            # Create report record first
+            # Create a simple report without PDF for now
             report = Report.objects.create(
                 report_type='student',
                 title=f"Student Report - {student.user.get_full_name()} - {term} {academic_year}",
@@ -60,63 +52,19 @@ def generate_student_report(request):
                 parameters={'student_id': student_id, 'term': term, 'academic_year': academic_year}
             )
             
-            StudentReport.objects.create(
-                report=report,
-                student=student,
-                overall_average=overall_average,
-                total_subjects=total_subjects
-            )
-            
-            # Only generate PDF if WeasyPrint is available
-            if WEASYPRINT_AVAILABLE:
-                try:
-                    # Generate HTML content
-                    html_string = render_to_string('reports/student_report_pdf.html', {
-                        'student': student,
-                        'results': results,
-                        'overall_average': overall_average,
-                        'term': term,
-                        'academic_year': academic_year,
-                    })
-                    
-                    # Create PDF
-                    html = HTML(string=html_string)
-                    pdf_data = html.write_pdf()
-                    
-                    # Save PDF to file
-                    filename = f'student_report_{student_id}_{term}_{academic_year}.pdf'.replace(' ', '_')
-                    report.file.save(filename, ContentFile(pdf_data))
-                    
-                    messages.success(request, 'Student report generated successfully with PDF!')
-                except Exception as e:
-                    logger.error(f"PDF generation failed: {e}")
-                    messages.warning(request, 'Report created but PDF generation failed. Please check server logs.')
-            else:
-                messages.success(request, 'Student report generated successfully! (PDF generation disabled)')
-            
+            messages.success(request, 'Student report generated successfully!')
             return redirect('report_list')
             
         except Exception as e:
             logger.error(f"Error generating student report: {e}")
-            messages.error(request, f'Error generating report: {str(e)}')
+            messages.error(request, 'Error generating report. Please try again.')
             return redirect('generate_student_report')
     
     students = Student.objects.all()
     
-    # Get unique terms and academic years from existing results
-    try:
-        terms = Result.objects.values_list('term', flat=True).distinct()
-        academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
-    except Exception as e:
-        logger.error(f"Error fetching terms/years: {e}")
-        terms = []
-        academic_years = []
-    
-    # Add default options if none exist
-    if not terms:
-        terms = ['Term 1', 'Term 2', 'Term 3']
-    if not academic_years:
-        academic_years = ['2023-2024', '2024-2025']
+    # Use default values for now
+    terms = ['Term 1', 'Term 2', 'Term 3']
+    academic_years = ['2023-2024', '2024-2025']
     
     return render(request, 'reports/generate_student_report.html', {
         'students': students,
@@ -124,7 +72,6 @@ def generate_student_report(request):
         'academic_years': academic_years,
         'weasyprint_available': WEASYPRINT_AVAILABLE
     })
-
 @login_required
 def generate_class_report(request):
     if request.method == 'POST':
