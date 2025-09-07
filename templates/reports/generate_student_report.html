@@ -10,6 +10,13 @@
                 <h5 class="mb-0">Generate Student Report</h5>
             </div>
             <div class="card-body">
+                {% if not weasyprint_available %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    PDF generation is disabled. Please install WeasyPrint for PDF reports.
+                </div>
+                {% endif %}
+                
                 <form method="post">
                     {% csrf_token %}
                     <div class="mb-3">
@@ -32,7 +39,7 @@
                     </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-file-earmark-pdf"></i> Generate Report
+                            <i class="bi bi-file-earmark-text"></i> Generate Report
                         </button>
                     </div>
                 </form>
