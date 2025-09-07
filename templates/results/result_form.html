@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">{{ title }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.student.id_for_label }}" class="form-label">Student</label>
+                        {{ form.student }}
+                        {% if form.student.errors %}
+                        <div class="text-danger">{{ form.student.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label">Subject</label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                        <div class="text-danger">{{ form.subject.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.term.id_for_label }}" class="form-label">Term</label>
+                        {{ form.term }}
+                        {% if form.term.errors %}
+                        <div class="text-danger">{{ form.term.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.academic_year.id_for_label }}" class="form-label">Academic Year</label>
+                        {{ form.academic_year }}
+                        {% if form.academic_year.errors %}
+                        <div class="text-danger">{{ form.academic_year.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.test_score.id_for_label }}" class="form-label">Test Score (30%)</label>
+                        {{ form.test_score }}
+                        {% if form.test_score.errors %}
+                        <div class="text-danger">{{ form.test_score.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="{{ form.exam_score.id_for_label }}" class="form-label">Exam Score (70%)</label>
+                        {{ form.exam_score }}
+                        {% if form.exam_score.errors %}
+                        <div class="text-danger">{{ form.exam_score.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.teacher_comment.id_for_label }}" class="form-label">Teacher's Comment</label>
+                {{ form.teacher_comment }}
+                {% if form.teacher_comment.errors %}
+                <div class="text-danger">{{ form.teacher_comment.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'result_list' %}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

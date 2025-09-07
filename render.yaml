@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: edutrack
+    env: python
+    plan: free
+    buildCommand: "build.bat"
+    startCommand: "gunicorn edutrack.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: DATABASE_URL
+        fromDatabase:
+          name: edutrack-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: WEB_CONCURRENCY
+        value: 4
+
+databases:
+  - name: edutrack-db
+    plan: free
+    databaseName: edutrack
+    user: edutrack
