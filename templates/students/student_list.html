@@ -7,7 +7,9 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Student Management</h5>
-        <a href="{% url 'student_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add New Student</a>
+        <a href="{% url 'student_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-circle d-none d-md-inline"></i> Add Student
+        </a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -16,9 +18,9 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Class</th>
-                        <th>Gender</th>
-                        <th>Date of Birth</th>
+                        <th class="d-none d-md-table-cell">Class</th>
+                        <th class="d-none d-sm-table-cell">Gender</th>
+                        <th class="d-none d-lg-table-cell">Date of Birth</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -27,13 +29,24 @@
                     <tr>
                         <td>{{ student.student_id }}</td>
                         <td>{{ student.user.get_full_name }}</td>
-                        <td>{{ student.current_class.name|default:"Not assigned" }}</td>
-                        <td>{{ student.get_gender_display }}</td>
-                        <td>{{ student.date_of_birth }}</td>
+                        <td class="d-none d-md-table-cell">{{ student.current_class.name|default:"Not assigned" }}</td>
+                        <td class="d-none d-sm-table-cell">{{ student.get_gender_display }}</td>
+                        <td class="d-none d-lg-table-cell">{{ student.date_of_birth }}</td>
                         <td>
-                            <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i></a>
-                            <a href="{% url 'student_update' student.pk %}" class="btn btn-sm btn-warning"><i class="bi bi-pencil"></i></a>
-                            <a href="{% url 'student_delete' student.pk %}" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-info">
+                                    <i class="bi bi-eye"></i>
+                                    <span class="d-none d-md-inline"> View</span>
+                                </a>
+                                <a href="{% url 'student_update' student.pk %}" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                    <span class="d-none d-md-inline"> Edit</span>
+                                </a>
+                                <a href="{% url 'student_delete' student.pk %}" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                    <span class="d-none d-md-inline"> Delete</span>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% empty %}
@@ -44,6 +57,57 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Mobile card view for small screens -->
+        <div class="d-block d-md-none">
+            {% for student in students %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="card-title">{{ student.user.get_full_name }}</h6>
+                    <p class="card-text mb-1">
+                        <strong>ID:</strong> {{ student.student_id }}<br>
+                        <strong>Class:</strong> {{ student.current_class.name|default:"Not assigned" }}<br>
+                        <strong>Gender:</strong> {{ student.get_gender_display }}<br>
+                        <strong>DOB:</strong> {{ student.date_of_birth }}
+                    </p>
+                    <div class="btn-group mt-2" role="group">
+                        <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'student_update' student.pk %}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'student_delete' student.pk %}" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <p>No students found.</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Make table rows clickable on mobile
+        const tableRows = document.querySelectorAll('#studentTable tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('click', function(e) {
+                if (window.innerWidth < 768 && !e.target.closest('a')) {
+                    const viewLink = this.querySelector('a.btn-info');
+                    if (viewLink) {
+                        window.location = viewLink.href;
+                    }
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

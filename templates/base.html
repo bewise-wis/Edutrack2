@@ -144,7 +144,17 @@
             height: 40px;
         }
         
-        /* Responsive adjustments */
+        /* Mobile-first responsive adjustments */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 220px;
+            }
+            
+            .main-content {
+                margin-left: 220px !important;
+            }
+        }
+        
         @media (max-width: 991.98px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -162,10 +172,16 @@
             .main-content {
                 margin-left: 0 !important;
                 width: 100%;
+                padding: 15px !important;
             }
             
             .topbar {
-                padding-left: 60px; /* Make space for the menu button */
+                padding: 12px 15px;
+                margin-bottom: 15px;
+            }
+            
+            .topbar h1 {
+                font-size: 1.4rem;
             }
             
             .sidebar-overlay {
@@ -182,6 +198,15 @@
             .sidebar-overlay.show {
                 display: block;
             }
+            
+            .profile-img {
+                width: 35px;
+                height: 35px;
+            }
+            
+            #user-name {
+                font-size: 0.9rem;
+            }
         }
         
         @media (max-width: 767.98px) {
@@ -190,38 +215,7 @@
             }
             
             .dashboard-stat {
-                font-size: 1.2rem;
-            }
-            
-            .table-responsive {
-                font-size: 0.9rem;
-            }
-            
-            .topbar h1 {
-                font-size: 1.5rem;
-            }
-            
-            .topbar .dropdown-menu {
-                right: 0;
-                left: auto;
-            }
-        }
-        
-        @media (max-width: 575.98px) {
-            .topbar {
-                padding: 10px 15px;
-            }
-            
-            .topbar h1 {
                 font-size: 1.3rem;
-            }
-            
-            #user-name {
-                display: none;
-            }
-            
-            .login-card {
-                margin: 1rem;
             }
             
             .card-icon {
@@ -229,6 +223,86 @@
                 top: 15px;
                 right: 15px;
             }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .topbar h1 {
+                font-size: 1.3rem;
+            }
+            
+            .dropdown-menu {
+                position: fixed !important;
+                top: 70px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 90% !important;
+                max-width: 300px;
+            }
+        }
+        
+        @media (max-width: 575.98px) {
+            .topbar {
+                padding: 10px;
+            }
+            
+            .topbar h1 {
+                font-size: 1.2rem;
+                margin-bottom: 0;
+            }
+            
+            #user-name {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                top: 10px;
+                left: 10px;
+                width: 35px;
+                height: 35px;
+            }
+            
+            .profile-img {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .card {
+                margin-bottom: 1rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            .btn {
+                padding: 0.375rem 0.75rem;
+                font-size: 0.875rem;
+            }
+            
+            /* Stack cards on extra small screens */
+            .col-xl-3, .col-lg-4, .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        .btn, .nav-link {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        /* Better table responsiveness */
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Improve form elements for mobile */
+        input, select, textarea {
+            font-size: 16px !important; /* Prevents zoom on iOS */
         }
         
     </style>
@@ -249,7 +323,7 @@
                 <!-- Sidebar -->
                 <div class="col-md-2 col-lg-2 p-0 sidebar" id="sidebar">
                     <div class="p-4">
-                        <h1 class="text-center mb-4">EduTrack</h1>
+                        <h1 class="text-center mb-4" style="font-size: 1.5rem;">EduTrack</h1>
                         <ul class="nav flex-column mt-4" id="sidebar-nav">
                             <li class="nav-item">
                                 <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
@@ -323,7 +397,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h1 class="h4 mb-0" id="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
                             <div class="d-flex align-items-center">
-                                <div class="me-3">
+                                <div class="me-3 d-none d-md-block">
                                     <span class="text-muted" id="current-date"></span>
                                 </div>
                                 <div class="dropdown">
@@ -406,6 +480,22 @@
             
             window.addEventListener('resize', adjustContentPadding);
             adjustContentPadding();
+            
+            // Touch device detection and improvements
+            function isTouchDevice() {
+                return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+            }
+            
+            if (isTouchDevice()) {
+                document.body.classList.add('touch-device');
+                // Add touch-specific improvements
+                const buttons = document.querySelectorAll('.btn, .nav-link');
+                buttons.forEach(button => {
+                    button.style.minHeight = '44px';
+                    button.style.display = 'flex';
+                    button.style.alignItems = 'center';
+                });
+            }
         });
     </script>
     {% block extra_js %}{% endblock %}
