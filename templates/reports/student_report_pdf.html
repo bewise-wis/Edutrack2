@@ -1,3 +1,4 @@
+<!-- reports/student_report_pdf.html -->
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,7 +17,7 @@
 <body>
     <div class="header">
         <h1>EduTrack Student Report</h1>
-        <h2>Semester {{ semester }}</h2>
+        <h2>{{ term }} {{ academic_year }}</h2>
     </div>
     
     <div class="student-info">
@@ -30,7 +31,9 @@
         <thead>
             <tr>
                 <th>Subject</th>
-                <th>Score</th>
+                <th>Test Score (30%)</th>
+                <th>Exam Score (70%)</th>
+                <th>Total Score</th>
                 <th>Grade</th>
             </tr>
         </thead>
@@ -38,6 +41,8 @@
             {% for result in results %}
             <tr>
                 <td>{{ result.subject.name }}</td>
+                <td>{{ result.test_score }}</td>
+                <td>{{ result.exam_score }}</td>
                 <td>{{ result.total_score }}</td>
                 <td>{{ result.grade }}</td>
             </tr>

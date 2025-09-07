@@ -6,8 +6,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.files.base import ContentFile
-import os
-import tempfile
+from django.db.models import Avg, Count
 import logging
 
 logger = logging.getLogger(__name__)
@@ -24,9 +23,7 @@ from .models import Report, StudentReport, ClassReport
 from students.models import Student
 from classes.models import Class
 from results.models import Result
-from django.db.models import Avg, Count
 
-# Add the missing report_list function
 @login_required
 def report_list(request):
     reports = Report.objects.filter(generated_by=request.user).order_by('-generated_at')
@@ -37,17 +34,18 @@ def generate_student_report(request):
     if request.method == 'POST':
         try:
             student_id = request.POST.get('student')
-            semester = request.POST.get('semester')
+            term = request.POST.get('term')
+            academic_year = request.POST.get('academic_year')
             
-            if not student_id or not semester:
-                messages.error(request, 'Please select both student and semester.')
+            if not student_id or not term or not academic_year:
+                messages.error(request, 'Please select student, term, and academic year.')
                 return redirect('generate_student_report')
             
             student = get_object_or_404(Student, id=student_id)
-            results = Result.objects.filter(student=student, semester=semester)
+            results = Result.objects.filter(student=student, term=term, academic_year=academic_year)
             
             if not results.exists():
-                messages.error(request, 'No results found for this student in the selected semester.')
+                messages.error(request, 'No results found for this student in the selected term and academic year.')
                 return redirect('generate_student_report')
             
             # Calculate statistics
@@ -57,9 +55,9 @@ def generate_student_report(request):
             # Create report record first
             report = Report.objects.create(
                 report_type='student',
-                title=f"Student Report - {student.user.get_full_name()} - Semester {semester}",
+                title=f"Student Report - {student.user.get_full_name()} - {term} {academic_year}",
                 generated_by=request.user,
-                parameters={'student_id': student_id, 'semester': semester}
+                parameters={'student_id': student_id, 'term': term, 'academic_year': academic_year}
             )
             
             StudentReport.objects.create(
@@ -77,7 +75,8 @@ def generate_student_report(request):
                         'student': student,
                         'results': results,
                         'overall_average': overall_average,
-                        'semester': semester,
+                        'term': term,
+                        'academic_year': academic_year,
                     })
                     
                     # Create PDF
@@ -85,7 +84,7 @@ def generate_student_report(request):
                     pdf_data = html.write_pdf()
                     
                     # Save PDF to file
-                    filename = f'student_report_{student_id}_{semester}.pdf'
+                    filename = f'student_report_{student_id}_{term}_{academic_year}.pdf'.replace(' ', '_')
                     report.file.save(filename, ContentFile(pdf_data))
                     
                     messages.success(request, 'Student report generated successfully with PDF!')
@@ -103,8 +102,15 @@ def generate_student_report(request):
             return redirect('generate_student_report')
     
     students = Student.objects.all()
+    
+    # Get unique terms and academic years from existing results
+    terms = Result.objects.values_list('term', flat=True).distinct()
+    academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    
     return render(request, 'reports/generate_student_report.html', {
         'students': students,
+        'terms': terms,
+        'academic_years': academic_years,
         'weasyprint_available': WEASYPRINT_AVAILABLE
     })
 
@@ -113,7 +119,8 @@ def generate_class_report(request):
     if request.method == 'POST':
         try:
             class_id = request.POST.get('class')
-            semester = request.POST.get('semester')
+            term = request.POST.get('term')
+            academic_year = request.POST.get('academic_year')
             
             class_obj = get_object_or_404(Class, id=class_id)
             students = Student.objects.filter(current_class=class_obj)
@@ -125,7 +132,8 @@ def generate_class_report(request):
             # Calculate class statistics
             class_results = Result.objects.filter(
                 student__current_class=class_obj,
-                semester=semester
+                term=term,
+                academic_year=academic_year
             )
             
             class_average = class_results.aggregate(avg=Avg('total_score'))['avg'] or 0
@@ -138,9 +146,9 @@ def generate_class_report(request):
             # Create report record
             report = Report.objects.create(
                 report_type='class',
-                title=f"Class Report - {class_obj.name} - Semester {semester}",
+                title=f"Class Report - {class_obj.name} - {term} {academic_year}",
                 generated_by=request.user,
-                parameters={'class_id': class_id, 'semester': semester}
+                parameters={'class_id': class_id, 'term': term, 'academic_year': academic_year}
             )
             
             ClassReport.objects.create(
@@ -160,7 +168,16 @@ def generate_class_report(request):
             return redirect('generate_class_report')
     
     classes = Class.objects.all()
-    return render(request, 'reports/generate_class_report.html', {'classes': classes})
+    
+    # Get unique terms and academic years from existing results
+    terms = Result.objects.values_list('term', flat=True).distinct()
+    academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    
+    return render(request, 'reports/generate_class_report.html', {
+        'classes': classes,
+        'terms': terms,
+        'academic_years': academic_years
+    })
 
 @login_required
 def view_report(request, report_id):

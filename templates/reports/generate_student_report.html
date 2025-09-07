@@ -29,12 +29,21 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="semester" class="form-label">Semester</label>
-                        <select class="form-select" id="semester" name="semester" required>
-                            <option value="">Select semester...</option>
-                            <option value="1">Semester 1</option>
-                            <option value="2">Semester 2</option>
-                            <option value="3">Semester 3</option>
+                        <label for="term" class="form-label">Term</label>
+                        <select class="form-select" id="term" name="term" required>
+                            <option value="">Select term...</option>
+                            {% for term in terms %}
+                            <option value="{{ term }}">{{ term }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="academic_year" class="form-label">Academic Year</label>
+                        <select class="form-select" id="academic_year" name="academic_year" required>
+                            <option value="">Select academic year...</option>
+                            {% for year in academic_years %}
+                            <option value="{{ year }}">{{ year }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="d-grid">
