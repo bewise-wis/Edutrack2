@@ -104,8 +104,19 @@ def generate_student_report(request):
     students = Student.objects.all()
     
     # Get unique terms and academic years from existing results
-    terms = Result.objects.values_list('term', flat=True).distinct()
-    academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    try:
+        terms = Result.objects.values_list('term', flat=True).distinct()
+        academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    except Exception as e:
+        logger.error(f"Error fetching terms/years: {e}")
+        terms = []
+        academic_years = []
+    
+    # Add default options if none exist
+    if not terms:
+        terms = ['Term 1', 'Term 2', 'Term 3']
+    if not academic_years:
+        academic_years = ['2023-2024', '2024-2025']
     
     return render(request, 'reports/generate_student_report.html', {
         'students': students,
@@ -170,8 +181,19 @@ def generate_class_report(request):
     classes = Class.objects.all()
     
     # Get unique terms and academic years from existing results
-    terms = Result.objects.values_list('term', flat=True).distinct()
-    academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    try:
+        terms = Result.objects.values_list('term', flat=True).distinct()
+        academic_years = Result.objects.values_list('academic_year', flat=True).distinct()
+    except Exception as e:
+        logger.error(f"Error fetching terms/years: {e}")
+        terms = []
+        academic_years = []
+    
+    # Add default options if none exist
+    if not terms:
+        terms = ['Term 1', 'Term 2', 'Term 3']
+    if not academic_years:
+        academic_years = ['2023-2024', '2024-2025']
     
     return render(request, 'reports/generate_class_report.html', {
         'classes': classes,
